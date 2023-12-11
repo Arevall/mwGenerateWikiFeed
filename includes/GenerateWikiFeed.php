@@ -6,52 +6,51 @@ class GenerateWikiFeed{
 
     # Register parser hooks.
     static function onParserFirstCallInit(Parser $parser){
-		global $wgGenerateWikiFeed;
+		$parser->sethook( 'startFeed', [self::class, 'feedStart']);
+		$parser->setHook('endFeed', [self::class, 'feedEnd']);
+		$parser->setHook('feedBurner', [self::class, 'burnFeed']);
+		$parser->setHook('itemTags', [self::class, 'itemTagsTag']);
+		$parser->setHook('feedDate', [self::class, 'feedDate']);	
 
-		$parser->setHook( 'startFeed', array( $wgGenerateWikiFeed, 'feedStart' ) );
-		$parser->setHook( 'endFeed', array( $wgGenerateWikiFeed, 'feedEnd' ) );
-		$parser->setHook( 'feedBurner', array( $wgGenerateWikiFeed, 'burnFeed' ) );
-		$parser->setHook( 'itemTags', array( $wgGenerateWikiFeed, 'itemTagsTag' ) );
-		$parser->setHook( 'feedDate', array( $wgGenerateWikiFeed, 'feedDate' ) );		
-		$parser->setFunctionHook( 'itemtags', array( $wgGenerateWikiFeed, 'itemTagsFunction' ) );
+		$parser->setFunctionHook( 'itemtags', [self::class, 'itemTagsFunction']);
 
         return true;
     }
 
 	#Parser hooks
-	function feedStart( $text, $params = array(), Parser $parser ) {
+	static function feedStart( $text, $params = array(), Parser $parser ) {
 		$parser->addTrackingCategory( 'wikiarticlefeeds-tracking-category' );
 		return '<!-- FEED_START -->';
 	}
 
-	function feedEnd( $text, $params = array() ) {
+	static function feedEnd( $text, $params = array() ) {
 		return '<!-- FEED_END -->';
 	}
 
-	function feedDate( $text, $params = array() ) {
+	static function feedDate( $text, $params = array() ) {
 		return ( $text ? '<!-- FEED_DATE ' . base64_encode( serialize( $text ) ) . ' -->':'' );
 	}	function burnFeed( $text, $params = array() ) {
 		return ( $params['name'] ? '<!-- BURN_FEED ' . base64_encode( serialize( $params['name'] ) ) . ' -->' : '' );
 	}
 
-	function itemTagsTag( $text, $params = array() ) {
+	static function itemTagsTag( $text, $params = array() ) {
 		return ( $text ? '<!-- ITEM_TAGS ' . base64_encode( serialize( $text ) ) . ' -->' : '' );
 	}
 
-	function itemTagsFunction( Parser $parser ) {
+	static function itemTagsFunction( Parser $parser ) {
 		$tags = func_get_args();
 		array_shift( $tags );
 		return ( !empty( $tags ) ? '<pre>@ITEMTAGS@' . base64_encode( serialize( implode( ',', $tags ) ) ) . '@ITEMTAGS@</pre>' : '' );
 	}
 
 
-	function feedDateFunction( Parser $parser ) {
+	static function feedDateFunction( Parser $parser ) {
 		$tags = func_get_args();
 		array_shift( $tags );
 		return ( !empty( $tags ) ? '<pre>@FEEDDATE@' . base64_encode( serialize( implode( ',', $tags ) ) ) . '@FEEDDATE@</pre>':'' );
 	}	
 	
-	function itemTagsPlaceholderCorrections( Parser $parser, &$text ) {
+	static function itemTagsPlaceholderCorrections( Parser $parser, &$text ) {
 		$text = preg_replace(
 			'|<pre>@ITEMTAGS@([0-9a-zA-Z\\+\\/]+=*)@ITEMTAGS@</pre>|',
 			'<!-- ITEM_TAGS $1 -->',
@@ -60,7 +59,7 @@ class GenerateWikiFeed{
 		return true;
 	}
 
-	function feedDatePlaceholderCorrections( Parser $parser, &$text ) {
+	static function feedDatePlaceholderCorrections( Parser $parser, &$text ) {
 		$text = preg_replace(
 			'|<pre>@FEEDDATE@([0-9a-zA-Z\\+\\/]+=*)@FEEDDATE@</pre>|',
 			'<!-- FEED_DATE $1 -->',

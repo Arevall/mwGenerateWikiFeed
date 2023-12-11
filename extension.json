@@ -5,7 +5,7 @@
 	"version": "0.1",
 	"manifest_version": 2,
 	"AutoloadClasses": {
-		"GenerateWikiFeeds": "\\includes\\GenerateWikiFeed.php",
+		"GenerateWikiFeed": "\\includes\\GenerateWikiFeed.php",
         "ActionFeed": "\\includes\\ActionFeed.php"
 	},
     "Hooks": {
