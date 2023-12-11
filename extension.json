@@ -1,0 +1,21 @@
+{
+	"name": "GenerateWikiFeed",
+	"license-name": "MIT",
+	"author": "Jonatan Arevall",
+	"version": "0.1",
+	"manifest_version": 2,
+	"AutoloadClasses": {
+		"GenerateWikiFeeds": "\\includes\\GenerateWikiFeed.php",
+        "ActionFeed": "\\includes\\ActionFeed.php"
+	},
+    "Hooks": {
+        "ParserFirstCallInit":"GenerateWikiFeed::onParserFirstCallInit",
+        "OutputPageBeforeHTML":"GenerateWikiFeed::addWikiFeedHeaders",
+        "LinkEnd":"GenerateWikiFeed::addSignatureMarker",
+        "ArticlePurge":"GenerateWikiFeed::onArticlePurge"
+    },
+    "Actions": {
+        "feedTest":"ActionFeed"
+    }
+
+}
