@@ -15,7 +15,7 @@
         "ArticlePurge":"GenerateWikiFeed::onArticlePurge"
     },
     "Actions": {
-        "feedTest":"ActionFeed"
+        "feedtest":"ActionFeed"
     },
     "MessagesDirs": {
 		"GenerateWikiFeed": [

@@ -3,9 +3,9 @@
 class ActionFeed extends Action {
     public function getName() {
 		// This should be the same name as used when registering the action in $wgActions.
-		return 'feedTest';
+		return 'feedtest';
 	}
-
+    
     public function show() {
         // Create local instances of the context variables we need, to simplify later code.
 		$out = $this->getOutput();
