@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": []
+	},
+	"generatewikifeed-desc": "Producerar feeds som genererats från MediaWikisidor",
+	"generatewikifeed-tracking-category": "Sidor som genererar flöden",
+	"generatewikifeed-tracking-category-desc": "Denna sida genererar ett flöde.",
+	"generatewikifeed_combined_description": "Detta är ett kombinerat flöde från flera källor."
+}

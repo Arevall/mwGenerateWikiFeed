@@ -16,6 +16,13 @@
     },
     "Actions": {
         "feedTest":"ActionFeed"
-    }
-
+    },
+    "MessagesDirs": {
+		"GenerateWikiFeed": [
+			"i18n"
+		]
+	},
+	"ExtensionMessagesFiles": {
+		"GenerateWikiFeed": "GenerateWikiFeed.i18n.magic.php"
+	}
 }

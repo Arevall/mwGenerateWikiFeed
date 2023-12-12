@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": []
+	},
+	"generatewikifeed-desc": "Produces feeds generated from MediaWiki pages",
+	"generatewikifeed-tracking-category": "Pages generating RSS feeds",
+	"generatewikifeed-tracking-category-desc": "The page generates an RSS feed.",
+	"generatewikifeed_combined_description": "This is a combined feed, containing items from several feed sources."
+}

@@ -19,7 +19,7 @@ class GenerateWikiFeed{
 
 	#Parser hooks
 	static function feedStart( $text, $params = array(), Parser $parser ) {
-		$parser->addTrackingCategory( 'wikiarticlefeeds-tracking-category' );
+		$parser->addTrackingCategory( 'generatewikifeed-tracking-category' );
 		return '<!-- FEED_START -->';
 	}
 
@@ -141,7 +141,7 @@ class GenerateWikiFeed{
 	public static function onArticlePurge( $article ) {
 		global $messageMemc, $wgDBname;
 		$titleDBKey = $article->mTitle->getPrefixedDBkey();
-		$keyPrefix = "{$wgDBname}:wikiarticlefeedsextension:{$titleDBKey}";
+		$keyPrefix = "{$wgDBname}:generatewikifeedextension:{$titleDBKey}";
 		$messageMemc->delete( "{$keyPrefix}:atom:timestamp" );
 		$messageMemc->delete( "{$keyPrefix}:atom" );
 		$messageMemc->delete( "{$keyPrefix}:rss" );
@@ -174,7 +174,7 @@ class GenerateWikiFeed{
 		$title = $article->getTitle();
 		$titleDBkey = $title->getPrefixedDBkey();
 		$tags = ( is_array( $filterTags ) ? ':' . implode( ',', $filterTags ) : '' );
-		$key = "{$wgDBname}:wikiarticlefeedsextension:{$titleDBkey}:{$feedFormat}{$tags}";
+		$key = "{$wgDBname}:generatewikifeedextension:{$titleDBkey}:{$feedFormat}{$tags}";
 		$timekey = $key . ':timestamp';
 		$cachedFeed = false;
 		$feedLastmod = $messageMemc->get( $timekey );
@@ -278,7 +278,7 @@ class GenerateWikiFeed{
 					$feedDescription = $segDesc;
 				} else {
 					$feedDescription =
-						$article->getContext()->msg( 'wikiarticlefeeds_combined_description' )->text();
+						$article->getContext()->msg( 'generatewikifeed_combined_description' )->text();
 				}
 			}
 
