@@ -23,6 +23,6 @@
 		]
 	},
 	"ExtensionMessagesFiles": {
-		"GenerateWikiFeed": "GenerateWikiFeed.i18n.magic.php"
+		"GenerateWikiFeedMagic": "GenerateWikiFeed.i18n.magic.php"
 	}
 }
