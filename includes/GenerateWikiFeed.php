@@ -177,16 +177,9 @@ class GenerateWikiFeed{
 		$key = "{$wgDBname}:generatewikifeedextension:{$titleDBkey}:{$feedFormat}{$tags}";
 		$timekey = $key . ':timestamp';
 		$cachedFeed = false;
-		$feedLastmod = $messageMemc->get( $timekey );
 
 		# Dermine last modification time for either the article itself or an included template
-		$lastmod = $article->getTimestamp();
-		$templates = $title->getTemplateLinksFrom();
-		foreach ( $templates as $tTitle ) {
-			$tArticle = new Article( $tTitle );
-			$tmod = $tArticle->getTimestamp();
-			$lastmod = ( $lastmod > $tmod ? $lastmod : $tmod );
-		}
+
 
 		# Check for availability of existing cached **
 		//TODO: Implement cache
@@ -198,7 +191,7 @@ class GenerateWikiFeed{
 
 		wfDebugLog( 'GenerateWikiFeed', 'Rendering new feed' );
 		ob_start();
-		GenerateWikiFeed::generateWikiFeed( $article, $wikipage, $out, $feedFormat, $filterTags );
+		GenerateWikiFeed::generateFeed( $article, $wikipage, $out, $feedFormat, $filterTags );
 		$cachedFeed = ob_get_contents();
 		ob_end_flush();
 
@@ -218,7 +211,7 @@ class GenerateWikiFeed{
 	 * @param string $feedFormat A format type - must be either 'rss' or 'atom'
 	 * @param array $filterTags Tags to use in filtering out items.
 	 */
-	public function generateWikiFeed(Article $article, WikiPage $wikipage, OutputPage $out, $feedFormat = 'atom', $filterTags = null ) {
+	public static function generateFeed(Article $article, WikiPage $wikipage, OutputPage $out, $feedFormat = 'atom', $filterTags = null ) {
 
 		global $wgOut, $wgServer, $wgFeedClasses, $wgVersion;
 
