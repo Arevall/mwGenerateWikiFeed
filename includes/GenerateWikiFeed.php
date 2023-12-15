@@ -340,7 +340,7 @@ class GenerateWikiFeed{
 		# Programmatically determine the feed title and ID.
 		$feedTitle = $title->getPrefixedText() . ' - Feed';
 		$feedId = $title->getFullURL();
-
+		
 		# Create feed
 		$feed = new $wgFeedClasses[$feedFormat]( $feedTitle, $feedDescription, $feedId );
 
@@ -350,12 +350,10 @@ class GenerateWikiFeed{
 		$feed->outHeader();
 		$wgVersion = $tempWgVersion;
 
-		# Sort all items by date and push onto feed
-		krsort( $items );
-		foreach ( $items as $itemGroup ) {
-			foreach ( $itemGroup as $item ) {
-				$feed->outItem( $item );
-			}
+		# Push items onto feed
+
+		foreach ( $items as $item ) {
+			$feed->outItem( $item );
 		}
 
 		# Feed footer
