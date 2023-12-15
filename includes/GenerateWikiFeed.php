@@ -149,14 +149,16 @@ class GenerateWikiFeed{
 		return true;
 	}
 
-	public static function onActionFeed(Article $article, WikiPage $wikipage, $out) {
+	public static function onActionFeed(Article $article, WikiPage $wikipage, WebRequest $request, $out) {
 
-		global $wgRequest, $wgFeedClasses, $wgFeedCacheTimeout, $wgDBname,
+		global $wgFeedClasses, $wgFeedCacheTimeout, $wgDBname,
 			$messageMemc;
 
 		# Get query parameters
-		$feedFormat = $wgRequest->getVal( 'feed', 'atom' );
-		$filterTags = $wgRequest->getVal( 'tags', null );
+		$feedFormat = $request->getVal( 'feed', 'atom' );
+		$filterTags = $request->getVal( 'tags', null );
+
+
 
 		# Process requested tags for use in keys
 		if ( $filterTags ) {
@@ -213,7 +215,7 @@ class GenerateWikiFeed{
 	 */
 	public static function generateFeed(Article $article, WikiPage $wikipage, OutputPage $out, $feedFormat = 'atom', $filterTags = null ) {
 
-		global $wgOut, $wgServer, $wgFeedClasses, $wgVersion;
+		global $wgServer, $wgFeedClasses, $wgVersion;
 
 		# Setup, handle redirects
 		if ( $wikipage->isRedirect() ) {

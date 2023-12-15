@@ -13,6 +13,6 @@ class ActionFeed extends Action {
 
         $article = $this->getArticle();
         $wikipage = $this->getWikiPage();
-		GenerateWikiFeed::onActionFeed($article, $wikipage, $out);
+		GenerateWikiFeed::onActionFeed($article, $wikipage, $request, $out);
     }
 }
