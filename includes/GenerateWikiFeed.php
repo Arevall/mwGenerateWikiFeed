@@ -8,7 +8,6 @@ class GenerateWikiFeed{
     static function onParserFirstCallInit(Parser $parser){
 		$parser->sethook( 'startFeed', [self::class, 'feedStart']);
 		$parser->setHook('endFeed', [self::class, 'feedEnd']);
-		$parser->setHook('feedBurner', [self::class, 'burnFeed']);
 		$parser->setHook('itemTags', [self::class, 'itemTagsTag']);
 		$parser->setHook('feedDate', [self::class, 'feedDate']);	
 
@@ -29,10 +28,8 @@ class GenerateWikiFeed{
 
 	static function feedDate( $text, $params = array() ) {
 		return ( $text ? '<!-- FEED_DATE ' . base64_encode( serialize( $text ) ) . ' -->':'' );
-	}	function burnFeed( $text, $params = array() ) {
-		return ( $params['name'] ? '<!-- BURN_FEED ' . base64_encode( serialize( $params['name'] ) ) . ' -->' : '' );
-	}
-
+	}	
+	
 	static function itemTagsTag( $text, $params = array() ) {
 		return ( $text ? '<!-- ITEM_TAGS ' . base64_encode( serialize( $text ) ) . ' -->' : '' );
 	}
@@ -139,7 +136,8 @@ class GenerateWikiFeed{
 	 * @return bool Always true to permit additional hook processing.
 	 */
 	public static function onArticlePurge( $article ) {
-		global $messageMemc, $wgDBname;
+		global $wgDBname, $wgMessageCacheType ;
+		$messageMemc = ObjectCache::getInstance( $wgMessageCacheType );
 		$titleDBKey = $article->mTitle->getPrefixedDBkey();
 		$keyPrefix = "{$wgDBname}:generatewikifeedextension:{$titleDBKey}";
 		$messageMemc->delete( "{$keyPrefix}:atom:timestamp" );
@@ -151,8 +149,8 @@ class GenerateWikiFeed{
 
 	public static function onActionFeed(Article $article, WikiPage $wikipage, WebRequest $request, $out) {
 
-		global $wgFeedClasses, $wgFeedCacheTimeout, $wgDBname,
-			$messageMemc;
+		global $wgFeedClasses, $wgDBname, $wgMessageCacheType;
+		$messageMemc = ObjectCache::getInstance( $wgMessageCacheType );
 
 		# Get query parameters
 		$feedFormat = $request->getVal( 'feed', 'atom' );
@@ -196,11 +194,11 @@ class GenerateWikiFeed{
 		GenerateWikiFeed::generateFeed( $article, $wikipage, $out, $feedFormat, $filterTags );
 		$cachedFeed = ob_get_contents();
 		ob_end_flush();
-
-		$expire = 3600; # One hour
-		$messageMemc->set( $key, $cachedFeed );
-		$messageMemc->set( $timekey, wfTimestamp( TS_MW ), $expire );
+		//$expire = 3600; # One hour
+		//$messageMemc->set( $key, $cachedFeed );
+		//$messageMemc->set( $timekey, wfTimestamp( TS_MW ), $expire );
 		
+		$out->addHTML($cachedFeed);
 
 		# False to indicate that other action handlers should not process this page
 		return false;
@@ -218,8 +216,8 @@ class GenerateWikiFeed{
 		global $wgServer, $wgFeedClasses, $wgVersion;
 
 		# Setup, handle redirects
-		if ( $wikipage->isRedirect() ) {
-			$rtitle = $wikipage->getRedirectTarget();
+		if ( $article->getPage()->isRedirect() ) {
+			$rtitle = $article->getPage()->getRedirectTarget();
 			if ( $rtitle ) {
 				$article = new Article( $rtitle );
 			}
@@ -239,8 +237,9 @@ class GenerateWikiFeed{
 
 		# Parse and process all feeds, collecting feed items
 		wfDebugLog( 'GenerateWikiFeed', 'Parse and process all feeds, collecting feed items' );
-		$items = array();
 		$feedDescription = '';
+		$items = [];
+
 		foreach ( $feedContentSections as $feedKey => $feedContent ) {
 			# Determine Feed item depth (what header level defines a feed)
 			preg_match_all( '/<h(\\d)>/m', $feedContent, $matches );
@@ -307,40 +306,15 @@ class GenerateWikiFeed{
 					continue;
 				}
 
-				# Try hard to determine the item author and date
-				# Look for a regular signatures of the layout
-				# data-userpage-link [optional user_talk page link] date (with a delimiting timezone code in parentheses)
 
-				$author = null;
-				$date = null;
-
-				$signatureRegExp = '#<a href=".+?User:.+?" title="User:.+?">(.*?)</a> (\d\d):(\d\d), (\d+) ([a-z]+) (\d{4}) (\([A-Z]+\))#im';
-
-				$signatureRegExp1 = '#<.*data-userpage-link.*>(.*?)</a>.*<.*data-usertalkpage-link.*>.*</a>\) (.*\([A-Z]+\))#im';
-				$signatureRegExp2 = '#<.*data-userpage-link.*>(.*?)</a> (.*\([A-Z]+\))#im';
-				$signatureRegExp3 = '#<.*data-usertalkpage-link.*>(.*?)</a> (.*\([A-Z]+\))#im';
-
-				$isAttributable = ( preg_match( $signatureRegExp1, $seg, $matches )
-					|| preg_match( $signatureRegExp2, $seg, $matches )
-					|| preg_match( $signatureRegExp3, $seg, $matches ) );
-
-				wfDebugLog( 'GenerateWikiFeed', 'Try hard to determine the item author and date' );
-				if ( $isAttributable ) {
-					list( $author, $timestring ) = array_slice( $matches, 1 );
-
-					$tempTimezone = date_default_timezone_get();
-					date_default_timezone_set( 'UTC' );
-					$date = date( 'YmdHis', strtotime( $timestring ) );
-					date_default_timezone_set( $tempTimezone );
-				}
-
-				wfDebugLog( 'GenerateWikiFeed', $date );
 				# Set default 'article section' feed-link
 				$url = $feedUrl . '#' . $itemLinks[$key];
 
 				# Look for an alternative to the default link (unless default 'section linking' has been forced)
 				global $wgForceArticleFeedSectionLinks;
+
 				if ( !$wgForceArticleFeedSectionLinks ) {
+					$signatureRegExp = '#<a href=".+?User:.+?" title="User:.+?">(.*?)</a> (\d\d):(\d\d), (\d+) ([a-z]+) (\d{4}) (\([A-Z]+\))#im';
 					$strippedSeg = preg_replace( $signatureRegExp, '', $seg );
 					preg_match(
 						'#<a [^>]*href=([\'"])(.*?)\\1[^>]*>(.*?)</a>#m',
@@ -359,7 +333,7 @@ class GenerateWikiFeed{
 				$seg = preg_replace( '/ (href|src)=([\'"])\\//', ' $1=$2' . $wgServer . '/', $seg );
 
 				# Create item and push onto item list
-				$items[$date][] = new FeedItem( strip_tags( $itemTitles[$key] ), $seg, $url, $date, $author );
+				$items[] = new FeedItem( strip_tags( $itemTitles[$key] ), $seg, $url, '', '');
 			}
 		}
 
