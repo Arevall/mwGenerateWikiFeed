@@ -150,8 +150,9 @@ class GenerateWikiFeed{
 	public static function onActionFeed(Article $article, WikiPage $wikipage, WebRequest $request, $out) {
 
 		global $wgFeedClasses, $wgDBname, $wgMessageCacheType;
-		$messageMemc = ObjectCache::getInstance( $wgMessageCacheType );
+		$bagofstuff = ObjectCache::getInstance( $wgMessageCacheType );
 
+	
 		# Get query parameters
 		$feedFormat = $request->getVal( 'feed', 'atom' );
 		$filterTags = $request->getVal( 'tags', null );
@@ -170,35 +171,50 @@ class GenerateWikiFeed{
 			return false;
 		}
 
-		# Setup cache-checking vars
+		# Setup cache-checking vars		
 		$title = $article->getTitle();
 		$titleDBkey = $title->getPrefixedDBkey();
 		$tags = ( is_array( $filterTags ) ? ':' . implode( ',', $filterTags ) : '' );
 		$key = "{$wgDBname}:generatewikifeedextension:{$titleDBkey}:{$feedFormat}{$tags}";
 		$timekey = $key . ':timestamp';
 		$cachedFeed = false;
-
-		# Dermine last modification time for either the article itself or an included template
-
-
-		# Check for availability of existing cached **
-		//TODO: Implement cache
-
-		# Display cachedFeed, or generate one from scratch
-		//TODO: Implement cache
-
-
-
-		wfDebugLog( 'GenerateWikiFeed', 'Rendering new feed' );
-		ob_start();
-		GenerateWikiFeed::generateFeed( $article, $wikipage, $out, $feedFormat, $filterTags );
-		$cachedFeed = ob_get_contents();
-		ob_end_flush();
-		//$expire = 3600; # One hour
-		//$messageMemc->set( $key, $cachedFeed );
-		//$messageMemc->set( $timekey, wfTimestamp( TS_MW ), $expire );
+		$feedLastmod = $bagofstuff->get( $timekey );
 		
-		$out->addHTML($cachedFeed);
+		# Determine last modification time for either the article itself or an included template
+		$lastmod = $article->getPage()->getTimestamp();
+		$templates = $title->getTemplateLinksFrom();
+		foreach ( $templates as $tTitle ) {
+			$tArticle = new Article( $tTitle );
+
+			$tmod = $tArticle->getPage()->getTimestamp();
+			$lastmod = ( $lastmod > $tmod ? $lastmod : $tmod );
+		}
+
+		# Try to get cache
+		if($feedLastmod > $lastmod){
+			$cachedFeed = $bagofstuff->get($key);
+		}
+		
+		# Display cachedFeed, or generate one from scratch
+		if (is_string( $cachedFeed ) ) {
+			wfDebugLog( 'GenerateWikiFeed', 'Outputting cached feed' );
+			$feed = new $wgFeedClasses[$feedFormat]( $title->getText(), '', $title->getFullURL() . ' - Feed' );
+			ob_start();
+			$feed->httpHeaders();
+			echo $cachedFeed;
+			ob_end_flush();
+		}
+		else{
+			wfDebugLog( 'GenerateWikiFeed', 'Rendering new feed' );
+			ob_start();
+			GenerateWikiFeed::generateFeed( $article, $wikipage, $out, $feedFormat, $filterTags );
+			$cachedFeed = ob_get_contents();
+			ob_end_flush();
+
+			wfDebugLog( 'GenerateWikiFeed', 'Storing cache' );
+			$bagofstuff->set($key, $cachedFeed, $exptime = 3600);
+			$bagofstuff->set($timekey, wfTimestampNow());
+		}
 
 		# False to indicate that other action handlers should not process this page
 		return false;
@@ -358,6 +374,8 @@ class GenerateWikiFeed{
 
 		# Feed footer
 		$feed->outFooter();
+
+		return $feed;
 	}
 
 
