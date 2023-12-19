@@ -65,51 +65,6 @@ class GenerateWikiFeed{
 		return true;
 	}
 
-
-
-
-    /**
-	 * Adds the Wiki feed link headers.
-	 *
-	 * @param OutputPage $out Handle to an OutputPage object (presumably $wgOut).
-	 * @param string $text Article/Output text.
-	 */
-    public static function addWikiFeedHeaders( $out, $text ) {
-		# Short-circuit if this article contains no feeds
-		if ( !preg_match( '/<!-- FEED_START -->/m', $text ) ) {
-			return true;
-		}
-
-		$rssArr = array(
-			'rel' => 'alternate',
-			'type' => 'application/rss+xml',
-			'title' => $out->getTitle()->getText() . ' - RSS 2.0',
-		);
-		$atomArr = array(
-			'rel' => 'alternate',
-			'type' => 'application/atom+xml',
-			'title' => $out->getTitle()->getText() . ' - Atom 0.3',
-		);
-
-		# If it's not being fed by feedBurner, do it ourselves!
-		if ( !array_key_exists( 'href', $rssArr ) || !$rssArr['href'] ) {
-			global $wgServer, $wgScript;
-
-			$baseUrl = $wgServer . $wgScript . '?title=' . $out->getTitle()->getDBkey() . '&action=feed&feed=';
-			$rssArr['href'] = $baseUrl . 'rss';
-			$atomArr['href'] = $baseUrl . 'atom';
-		}
-
-		$out->addLink( $rssArr );
-		$out->addLink( $atomArr );
-
-		global $wgWikiFeedPresent;
-		$wgWikiFeedPresent = true;
-
-		# True to indicate that other action handlers should continue to process this page
-		return true;
-	}
-
     /**
 	 * Add additional attributes to links to User- or User_talk pages
 	 * It does this for all links on all pages
