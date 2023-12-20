@@ -10,7 +10,7 @@
 	},
     "Hooks": {
         "ParserFirstCallInit":"GenerateWikiFeed::onParserFirstCallInit",
-        "LinkEnd":"GenerateWikiFeed::addSignatureMarker",
+        "HtmlPageLinkRendererEnd":"GenerateWikiFeed::onHtmlPageLinkRendererEnd",
         "ArticlePurge":"GenerateWikiFeed::onArticlePurge"
     },
     "Actions": {

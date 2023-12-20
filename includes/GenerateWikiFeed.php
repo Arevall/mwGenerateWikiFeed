@@ -73,9 +73,9 @@ class GenerateWikiFeed{
 	 * Attributes are used later in self::generateWikiFeed() to determine signatures with timestamps
 	 * for attributing author and timestamp values to the feed item from the signatures.
 	 *
-	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/LinkEnd
+	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/HtmlPageLinkRendererEnd
 	 */
-	public static function addSignatureMarker( $skin, Title $target, array $options, $text, array &$attribs, $ret ) {
+	public static function onHtmlPageLinkRendererEnd( LinkRenderer $linkRenderer, LinkTarget $target, $isKnown, &$text, &$attribs, &$ret ) {
 		if ( $target->getNamespace() == NS_USER ) {
 			$attribs['data-userpage-link'] = 'true';
 		} elseif ( $target->getNamespace() == NS_USER_TALK ) {
