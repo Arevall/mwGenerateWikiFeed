@@ -10,11 +10,11 @@
 	},
     "Hooks": {
         "ParserFirstCallInit":"GenerateWikiFeed::onParserFirstCallInit",
-        "HtmlPageLinkRendererEnd":"GenerateWikiFeed::onHtmlPageLinkRendererEnd",
+        "onHtmlPageLinkRendererEnd":"GenerateWikiFeed::onHtmlPageLinkRendererEnd",
         "ArticlePurge":"GenerateWikiFeed::onArticlePurge"
     },
     "Actions": {
-        "feedtest":"ActionFeed"
+        "feed":"ActionFeed"
     },
     "MessagesDirs": {
 		"GenerateWikiFeed": [
