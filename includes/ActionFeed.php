@@ -3,7 +3,7 @@
 class ActionFeed extends Action {
     public function getName() {
 		// This should be the same name as used when registering the action in $wgActions.
-		return 'feedtest';
+		return 'feed';
 	}
     
     public function show() {
